@@ -1,0 +1,94 @@
+diff --git a/PSX.qsf b/PSX.qsf
+index 27ec72f..44188da 100644
+--- a/PSX.qsf
++++ b/PSX.qsf
+@@ -49,7 +49,7 @@ set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION
+ set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
+ set_global_assignment -name ALM_REGISTER_PACKING_EFFORT LOW
+ set_global_assignment -name PLACEMENT_EFFORT_MULTIPLIER 1.0
+-set_global_assignment -name SEED 1
++set_global_assignment -name SEED 2
+ 
+ set_global_assignment -name VERILOG_MACRO "MISTER_FB=1"
+ 
+diff --git a/sys/audio_out.sv b/sys/audio_out.sv
+index 309b92e..85012d0 100644
+--- a/sys/audio_out.sv
++++ b/sys/audio_out.sv
+@@ -50,6 +50,9 @@ module audio_out
+ 	input [15:0] alsa_l,
+ 	input [15:0] alsa_r,
+ 
++	output reg capture_valid = 0,
++	output wire [31:0] capture_sample,
++
+ 	// I2S
+ 	output       i2s_bclk,
+ 	output       i2s_lrclk,
+@@ -276,6 +279,19 @@ aud_mix_top audmix_r
+ 	.out(ar)
+ );
+ 
++// The serial prototype captures the final left channel, after mix/filter/volume.
++// At96kHz output, retain every other sample for a48kHz stereo stream.
++assign capture_sample = {ar,al};
++reg capture_half = 0;
++always @(posedge clk) begin
++    capture_valid <= 0;
++    if(reset) capture_half <= 0;
++    else if(sample_ce) begin
++        capture_half <= ~capture_half;
++        capture_valid <= !sample_rate || !capture_half;
++    end
++end
++
+ endmodule
+ 
+ module aud_mix_top
+diff --git a/sys/sys.qip b/sys/sys.qip
+index ef2330d..f459449 100644
+--- a/sys/sys.qip
++++ b/sys/sys.qip
+@@ -33,3 +33,5 @@ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) s
+ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) sd_card.sv ]
+ set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) hps_io.sv ]
+ set_global_assignment -name SOURCE_FILE        [file join $::quartus(qip_path) emu_ports.vh ]
++
++set_global_assignment -name SYSTEMVERILOG_FILE [file join $::quartus(qip_path) audio_uart.sv ]
+diff --git a/sys/sys_top.v b/sys/sys_top.v
+index a416879..49bfde1 100644
+--- a/sys/sys_top.v
++++ b/sys/sys_top.v
+@@ -1576,6 +1576,14 @@ pll_audio pll_audio
+ 	.outclk_0(clk_audio)
+ );
+ 
++wire capture_valid;
++wire [31:0] capture_sample;
++wire unused_core_uart;
++audio_uart capture_uart (
++    .clk(clk_audio), .reset(reset | areset),
++    .sample_valid(capture_valid), .sample_data(capture_sample),
++    .tx(uart_rxd), .dropped()
++);
+ wire spdif;
+ audio_out audio_out
+ (
+@@ -1597,6 +1605,8 @@ audio_out audio_out
+ 	.cy2(acy2),
+ 
+ 	.is_signed(audio_s),
++	.capture_valid(capture_valid),
++	.capture_sample(capture_sample),
+ 	.core_l(audio_l),
+ 	.core_r(audio_r),
+ 
+@@ -1867,7 +1877,7 @@ emu emu
+ 	.UART_CTS(uart_rts),
+ 	.UART_RTS(uart_cts),
+ 	.UART_RXD(uart_txd),
+-	.UART_TXD(uart_rxd),
++	.UART_TXD(unused_core_uart),
+ 	.UART_DTR(uart_dsr),
+ 	.UART_DSR(uart_dtr),
+ 

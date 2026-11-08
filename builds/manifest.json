@@ -1,0 +1,34 @@
+{
+  "compiler": "Quartus Prime Lite 17.0.2 Build 602",
+  "cores": {
+    "NES": {
+      "upstream": "https://github.com/MiSTer-devel/NES_MiSTer",
+      "commit": "49a0a662e244469ca77b2155746a066df704ffae",
+      "sha256": "38daace3dc194feb46d8f9f9bad0d0c869fca03f43598cea1dcea8d200e7ef38",
+      "bytes": 3423104,
+      "seed": 2,
+      "license": "cores/NES/COPYING",
+      "timing": {
+        "seed": 2,
+        "all_reported_slacks_nonnegative": true,
+        "minimum_reported_slack_ns": 0.181,
+        "HDMI_setup_slack_ns": 0.395,
+        "constraints_relaxed": false,
+        "unconstrained_IO_note": "Common MiSTer framework still reports unconstrained I/O; this is not a claim of complete I/O constraint coverage."
+      }
+    },
+    "PSX": {
+      "upstream": "https://github.com/MiSTer-devel/PSX_MiSTer",
+      "commit": "cd17b5a0ad261005c321d9d5ba41b8dbe313a7d3",
+      "sha256": "6a3d4ce40e7ed66bd993d4c56a970a8486a388423a3f3f7501e2715fcf408cc6",
+      "bytes": 4422096,
+      "seed": 2,
+      "license": "cores/PSX/LICENSE",
+      "timing": {
+        "all_reported_slacks_nonnegative": true,
+        "minimum_reported_slack_ns": 0.082,
+        "constraints_relaxed": false
+      }
+    }
+  }
+}

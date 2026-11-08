@@ -1,0 +1,10 @@
+{
+  "NES": {
+    "load_path": "_EthernetAudio/NES",
+    "sha256": "38daace3dc194feb46d8f9f9bad0d0c869fca03f43598cea1dcea8d200e7ef38"
+  },
+  "PSX": {
+    "load_path": "_EthernetAudio/PSX",
+    "sha256": "6a3d4ce40e7ed66bd993d4c56a970a8486a388423a3f3f7501e2715fcf408cc6"
+  }
+}

@@ -1,0 +1,13 @@
+auth.token
+*token*.txt
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.log
+status.json
+last-session.json
+stop.flag
+cores/*/db/
+cores/*/incremental_db/
+cores/*/output_files/
